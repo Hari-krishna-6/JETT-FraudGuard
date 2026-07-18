@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+python-env/
+venv/
+ENV/
+.env
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Package and dependency files
+pip-wheel-metadata/
+*.egg-info/
+
+# Local databases and temp files
+*.db
+*.sqlite3
+*.tmp
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# Ignore all dataset contents except the link file
+backend/datasets/
+backend/datasets/**
+!backend/datasets/
+!backend/datasets/data.txt
+
+# Keep the saved models tracked
+!backend/saved_model/
+!backend/saved_model/**
+!backend/saved_model/*.joblib
