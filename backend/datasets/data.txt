@@ -1,0 +1,24 @@
+https://drive.google.com/drive/folders/1dBQ0WS01mVeQtqjfviCMaqvJ94dvse2L?usp=drive_link
+
+
+
+
+
+
+File Name               Link                                                     How
+  
+ATT&CK	                https://github.com/mitre-attack/attack-stix-data         download ( enterprise,ics,mobile,util )
+
+Network_Topology        https://github.com/cisco-ie/telemetry                    all except git artifacts
+
+OT_ICS                  https://github.com/icsdataset/hai                        all
+
+vulnerability           https://drive.google.com/drive/folders/1dBQ0WS01mVeQtqjfviCMaqvJ94dvse2L?usp=drive_link       
+
+UNSW                    https://drive.google.com/drive/folders/1dBQ0WS01mVeQtqjfviCMaqvJ94dvse2L?usp=drive_link
+
+
+
+
+file structure to be followed : 
+https://drive.google.com/file/d/1ZRVglrCnF0OcM58zRQ4NmShbYAzenTqw/view?usp=drive_link
