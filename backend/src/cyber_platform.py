@@ -203,16 +203,39 @@ def build_threat_intelligence_index() -> Dict[str, Any]:
     techniques = []
     root = DATASETS_DIR / "ATT&CK"
     for path in root.rglob("*.json") if root.exists() else []:
-        try: objects = json.loads(path.read_text(encoding="utf-8")).get("objects", [])
-        except (json.JSONDecodeError, OSError): continue
+        try:
+            decoded = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(decoded, dict):
+            objects = decoded.get("objects", decoded.get("attack-patterns", []))
+        elif isinstance(decoded, list):
+            objects = decoded
+        else:
+            continue
+        if not isinstance(objects, list):
+            continue
         for item in objects:
-            if item.get("type") != "attack-pattern": continue
+            if not isinstance(item, dict) or item.get("type") != "attack-pattern":
+                continue
             external = next((x.get("external_id") for x in item.get("external_references", []) if x.get("source_name", "").startswith("mitre-attack")), item.get("id"))
             phases = [x.get("phase_name") for x in item.get("kill_chain_phases", []) if x.get("phase_name")]
-            techniques.append({"id": external, "name": item.get("name"), "tactic": phases[0] if phases else "unknown", "description": re.sub(r"\s+", " ", item.get("description", "")), "framework": path.parts[-2]})
-    if not techniques: techniques = [{"id": v[0], "name": v[1], "tactic": v[2], "description": key, "framework": "curated_demo"} for key, v in SIGNAL_TECHNIQUES.items()]
+            techniques.append({
+                "id": external,
+                "name": item.get("name"),
+                "tactic": phases[0] if phases else "unknown",
+                "description": re.sub(r"\s+", " ", item.get("description", "") or ""),
+                "framework": path.parts[-2],
+            })
+    if not techniques:
+        techniques = [{"id": v[0], "name": v[1], "tactic": v[2], "description": key, "framework": "curated_demo"} for key, v in SIGNAL_TECHNIQUES.items()]
     dedupe = {x["id"]: x for x in techniques}
-    return {"techniques": list(dedupe.values()), "tactics": sorted({x["tactic"] for x in dedupe.values()}), "files_processed": len(list(root.rglob("*.json"))) if root.exists() else 0, "mode": "repository" if root.exists() else "curated_demo"}
+    return {
+        "techniques": list(dedupe.values()),
+        "tactics": sorted({x["tactic"] for x in dedupe.values()}),
+        "files_processed": len(list(root.rglob("*.json"))) if root.exists() else 0,
+        "mode": "repository" if root.exists() else "curated_demo",
+    }
 
 
 def map_observed_techniques(observed_signals: List[str], top_k: int = 5) -> List[Dict[str, Any]]:

@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .middleware import add_security_headers
@@ -28,6 +29,21 @@ app = FastAPI(
     description="Deployment-ready cyber resilience platform for critical infrastructure with behavioural anomaly detection, ATT&CK mapping, topology awareness, OT/ICS context, vulnerability prioritization, and incident response orchestration.",
     version="1.1.0",
 )
+# Configure CORS so the local React dev server and any static demo pages can call the API
+allowed = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 app = add_security_headers(app)
 
 
