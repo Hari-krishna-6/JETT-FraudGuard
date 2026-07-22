@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -11,10 +11,13 @@ from .cyber_platform import (
     build_threat_intelligence_index,
     build_unified_assessment,
     discover_dataset_files,
+    evaluate_anomaly_model,
     map_observed_techniques,
     orchestrate_incident_response,
     prioritize_vulnerabilities,
+    read_audit_log,
     score_behavioural_anomalies,
+    simulate_attack_paths,
     suggest_defensive_actions,
     train_behavioural_anomaly_model,
 )
@@ -39,11 +42,13 @@ class SignalsRequest(BaseModel):
 class VulnerabilityRequest(BaseModel):
     asset_count: int = 4
     threat_level: str = "medium"
+    assets: List[Dict[str, Any]] = []
 
 
 class IncidentRequest(BaseModel):
     signals: List[str]
     blast_radius: str = "medium"
+    incident_id: Optional[str] = None
 
 
 class UnifiedAssessmentRequest(BaseModel):
@@ -51,6 +56,7 @@ class UnifiedAssessmentRequest(BaseModel):
     signals: List[str]
     asset_count: int = 4
     threat_level: str = "medium"
+    assets: List[Dict[str, Any]] = []
 
 
 def validate_records(records: List[Dict[str, Any]]):
@@ -96,8 +102,15 @@ def analyze_behavior(payload: RecordsRequest):
 
 @app.post("/train-anomaly-model")
 def train_anomaly_model():
-    summary = train_behavioural_anomaly_model()
-    return summary
+    try:
+        return train_behavioural_anomaly_model()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/model-metrics")
+def model_metrics():
+    return evaluate_anomaly_model()
 
 
 @app.post("/map-techniques")
@@ -117,21 +130,32 @@ def suggest_actions(payload: SignalsRequest):
 
 @app.post("/prioritize-vulnerabilities")
 def prioritize_vulns(payload: VulnerabilityRequest):
-    return {"vulnerabilities": prioritize_vulnerabilities(asset_count=payload.asset_count, threat_level=payload.threat_level)}
+    return {"vulnerabilities": prioritize_vulnerabilities(asset_count=payload.asset_count, threat_level=payload.threat_level, assets=payload.assets)}
 
 
 @app.post("/incident-response")
 def incident_response(payload: IncidentRequest):
     if not payload.signals:
         raise HTTPException(status_code=400, detail="Signals must not be empty.")
-    return orchestrate_incident_response(payload.signals, blast_radius=payload.blast_radius)
+    return orchestrate_incident_response(payload.signals, blast_radius=payload.blast_radius, incident_id=payload.incident_id)
 
 
 @app.post("/unified-assessment")
 def unified_assessment(payload: UnifiedAssessmentRequest):
     if not payload.records:
         raise HTTPException(status_code=400, detail="Records must not be empty.")
-    return build_unified_assessment(payload.records, payload.signals, asset_count=payload.asset_count, threat_level=payload.threat_level)
+    return build_unified_assessment(payload.records, payload.signals, asset_count=payload.asset_count, threat_level=payload.threat_level, assets=payload.assets)
+
+
+@app.get("/audit-log")
+def audit_log(limit: int = 100):
+    """Return the newest simulated assessment and response events for SOC review."""
+    return {"events": read_audit_log(limit)}
+
+
+@app.post("/attack-paths")
+def attack_paths(payload: VulnerabilityRequest):
+    return {"paths": simulate_attack_paths(payload.asset_count, payload.threat_level, payload.assets)}
 
 
 @app.post("/predict")

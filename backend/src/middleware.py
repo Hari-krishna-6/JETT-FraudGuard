@@ -8,6 +8,8 @@ def add_security_headers(app: FastAPI) -> FastAPI:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
         return response
 
     return app

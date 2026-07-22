@@ -49,3 +49,6 @@ backend/datasets/**
 !backend/saved_model/
 !backend/saved_model/**
 !backend/saved_model/*.joblib
+backend/state/*.jsonl
+frontend/node_modules/
+frontend/dist/

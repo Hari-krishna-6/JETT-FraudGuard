@@ -1,15 +1,15 @@
 # JETT FraudGuard
 
-JETT FraudGuard is a deployment-ready cyber resilience platform for critical infrastructure. It combines behavioural anomaly detection, ATT&CK-based threat mapping, OT/ICS context awareness, topology-aware situational insight, vulnerability prioritisation, and incident-response orchestration on top of the repository datasets.
+JETT FraudGuard is a demo-ready cyber resilience platform for critical infrastructure. It turns telemetry and weak signals into behavioural risk, MITRE ATT&CK techniques, attack paths, remediation priorities, and an approval-gated containment playbook with a full audit trail.
 
 ## What is included
 
-- Behavioural anomaly scoring over network telemetry with an Isolation Forest model
-- ATT&CK-style knowledge indexing derived from the bundled ATT&CK JSON datasets
-- Topology and OT/ICS context summarisation from the supplied network and industrial datasets
-- Vulnerability prioritisation based on the known exploited vulnerability feed
-- FastAPI endpoints for health checks, assessment, response orchestration, and model training
-- Deployment helpers for local execution and cloud-style hosting
+- Behavioural anomaly scoring with an Isolation Forest baseline plus explainable high-risk indicators
+- MITRE ATT&CK technique IDs, evidence, and a multi-stage campaign hypothesis
+- Attack-path simulation based on asset criticality and internet exposure
+- Vulnerability prioritisation using CVSS, KEV/ransomware evidence, asset exposure, and criticality
+- Approval-gated SOAR playbooks; every simulation is recorded as a JSONL audit event
+- Self-contained synthetic demo baseline and curated threat intelligence when optional source datasets are not mounted
 
 ## Repository layout
 
@@ -44,22 +44,25 @@ The service will be available at:
 - GET /threat-intelligence
 - POST /analyze-behavior
 - POST /train-anomaly-model
+- GET /model-metrics
 - POST /map-techniques
 - POST /suggest-actions
 - POST /prioritize-vulnerabilities
 - POST /incident-response
 - POST /unified-assessment
+- POST /attack-paths
+- GET /audit-log
 
 ## Example assessment request
 
 ```bash
 curl -X POST http://localhost:8000/unified-assessment \
   -H "Content-Type: application/json" \
-  -d '{"records":[{"dur":0.12,"proto":"tcp","service":"-","state":"FIN","spkts":6,"dpkts":4,"sbytes":258,"dbytes":172}],"signals":["credential access","lateral movement","ransomware"],"asset_count":4,"threat_level":"high"}'
+  -d '{"records":[{"asset_id":"exam-db-01","dur":0.12,"proto":"tcp","service":"-","state":"FIN","spkts":6,"dpkts":4,"sbytes":125800,"dbytes":172,"failed_logins":12}],"signals":["credential access","lateral movement","ransomware"],"threat_level":"high","assets":[{"asset_id":"exam-db-01","criticality":10,"internet_exposed":true},{"asset_id":"vpn-01","criticality":7,"internet_exposed":true}]}'
 ```
 
 ## Notes
 
-- The behavioural engine is trained on the UNSW telemetry data supplied in the repository.
-- ATT&CK intelligence is built from all available ATT&CK JSON families in the repository.
-- The unified assessment endpoint consumes the repository-backed topology, OT/ICS, UNSW, and vulnerability datasets for a richer operational view.
+- Mount UNSW, MITRE ATT&CK, OT/ICS, topology, and KEV datasets under `backend/datasets` to switch the relevant components to repository-data mode.
+- `/model-metrics` reports recall, precision, and false-positive rate only when a labelled UNSW testing dataset is mounted; it deliberately does not fabricate benchmark results.
+- Response actions are intentionally **simulation-only**. Replace the adapter with a customer-approved SOAR integration before enabling any live isolation, blocking, credential revocation, or VM operations.
